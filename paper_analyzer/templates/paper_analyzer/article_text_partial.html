@@ -1,0 +1,31 @@
+{% load staticfiles %}
+
+{% verbatim %}
+<div class="row">
+    <div class="col-sm-12">
+        <p>
+            This site enables you to search for articles or journals only by
+            providing some text, for example an abstract or full text contents
+            of your article. Paste article text and hit the appropriate button
+            to run the query.
+        </p>
+        <br/>
+        <form name="articleTextForm" role="form">
+            <div class="form-group">
+                <label for="article-sbmt">Article text:</label>
+                <textarea class="form-control" id="article-sbmt" ng-model="Shared.articleText"
+                          ng-change="onArticleText()" rows="15"></textarea>
+            </div>
+            <a ui-sref="paper-analyzer.articles">
+                <button type="submit" class="btn btn-default">Search for Articles</button>
+            </a>
+            <a ui-sref="paper-analyzer.journals">
+                <button type="submit" class="btn btn-default">Search for Journals</button>
+            </a>
+            <div ng-if="Shared.requestPending" class="text-center">
+                <span class="glyphicon glyphicon-refresh spinning"></span> Loading...
+            </div>
+        </form>
+    </div>
+</div>
+{% endverbatim %}

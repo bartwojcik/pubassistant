@@ -1,0 +1,37 @@
+@startuml
+skinparam componentStyle uml2
+skinparam monochrome true
+'left to right direction
+
+[Przeglądarka\nużytkownika] as browser
+[nginx\n<<Serwer WWW>>] as nginx
+component "Gunicorn\n<<serwer WSGI>>" as gunicorn {
+    component "Django\n<<Web framework>>" as django{
+        [main_assistant]
+        [hype_cycle_graph]
+        [paper_analyzer]
+        [author_browser]
+    }
+}
+
+[Redis\n<<Serwer struktur \ndanych, cache>>] as redis
+[Celery\n<<Serwer kolejki zadań>>] as celery
+[Elasticsearch\n<<Indeks>>] as elasticsearch
+database PostgreSQL as postgres
+
+browser <~r~> nginx
+nginx <-l-> gunicorn
+django <--> redis
+django <--> postgres
+django <--> elasticsearch
+django <--> celery
+
+'LAYOUT FIXES
+main_assistant<-[hidden]->hype_cycle_graph
+hype_cycle_graph<-[hidden]->paper_analyzer
+paper_analyzer<-[hidden]->author_browser
+postgres <-[hidden]-->elasticsearch
+elasticsearch <-[hidden]->celery
+celery <-[hidden]->redis
+
+@enduml

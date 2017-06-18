@@ -1,0 +1,58 @@
+{% load staticfiles %}
+
+{% verbatim %}
+<div class="row">
+    <div class="col-sm-12">
+        <button class="btn btn-sm btn-info pull-right" ng-click="$state.go('paper-analyzer.text')">
+            Back
+        </button>
+        <h4>Publication search results:</h4>
+        <div ng-if="Shared.requestPending" class="text-center">
+            <span class="glyphicon glyphicon-refresh spinning"></span> Loading...
+        </div>
+        <div ng-if="Shared.requestError" class="text-center">
+            An error has occurred. Try rerunning your request.
+        </div>
+        <div ng-repeat="publication in results">
+            <strong><a target="_blank" href="{{publication.location}}">{{publication.name}}</a></strong>
+            <small>(Score: {{publication.score | number : 3}})</small>
+            <br/>
+            <small>
+                <span style="color: green;">{{publication.location}}</span>
+                <span ng-show="publication.identifier.length < 10"><b> ISSN:</b> {{publication.identifier}}</span>
+                <span ng-show="publication.rankings[0]"><b> Impact Factor:</b> {{publication.rankings[0].value  | number : 3}}</span>
+                <span ng-show="publication.rankings[1]"><b> Punkty MNiSW:</b> {{publication.rankings[1].value | number : 0}}</span>
+            </small>
+            <br/>
+            {{publication.aim_and_scope}}<br/>
+            <br/>
+        </div>
+        <div class="text-center">
+            <p ng-show="item_count == 0 && !Shared.requestPending">
+                No results found. Maybe the input text is too short?
+            </p>
+            <ul class="pagination pagination-sm" ng-hide="Shared.requestPending || item_count < 10">
+                <li><a ng-show="pagination.first" ng-click="gotoPage(1)">First</a></li>
+                <li><a ng-show="pagination.previous.enabled"
+                       ng-click="gotoPage(pagination.previous.page)">Previous</a></li>
+                <li>
+                    <a ng-show="pagination.more_left.enabled"
+                       ng-click="gotoPage(pagination.more_left.page_num)">...</a>
+                </li>
+                <li ng-repeat="p in pagination.pages" ng-class="{active: !p.enabled}">
+                    <a ng-click="gotoPage(p.page_num)">{{p.page_num}}</a>
+                </li>
+                <li>
+                    <a ng-show="pagination.more_right.enabled"
+                       ng-click="gotoPage(pagination.more_right.page_num)">...</a>
+                </li>
+                <li><a ng-show="pagination.next.enabled"
+                       ng-click="gotoPage(pagination.next.page)">Next</a></li>
+            </ul>
+        </div>
+        <button class="btn btn-sm btn-info pull-right" ng-click="$state.go('paper-analyzer.text')">
+            Back
+        </button>
+    </div>
+</div>
+{% endverbatim %}

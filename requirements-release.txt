@@ -1,0 +1,17 @@
+aiohttp==0.22.5
+#aiosocks==0.1.5
+git+https://github.com/bartwojcik/aiosocks.git@f234660e8c7f81043473905c7ff821fb3e6fb655#egg=aiosocks
+celery==3.1.23
+Django==1.10
+django-haystack==2.5.0
+django-redis==4.4.4
+djangorestframework==3.4.3
+elasticsearch==1.9.0
+gunicorn==19.6.0
+lxml==3.6.1
+psycopg2==2.6.2
+pyahocorasick==1.1.1
+pycrypto==2.6.1
+setproctitle==1.1.10
+stem==1.4.0
+user-agent==0.1.4

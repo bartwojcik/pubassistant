@@ -1,0 +1,7 @@
+{{ object.title }}
+{% if object.abstract %}
+{{ object.abstract}}
+{% endif %}
+{% for keyword in object.keywords.all %}
+{{ keyword.keyword }}
+{% endfor %}

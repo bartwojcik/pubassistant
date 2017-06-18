@@ -1,0 +1,76 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html lang="en" ng-app="pubAssistantClient">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Publication Assistant{% endblock %}</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/bootstrap.min.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/bootstrap-theme.min.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/theme.css' %}">
+    <!--TODO move urls to a separate file-->
+    <script id="variables" type='text/javascript'>
+        urls = {}
+        urls.articlePartial = '{% url 'article_partial' %}'
+        urls.articleTextPartial = '{% url 'article_text_partial' %}'
+        urls.articleResultsPartial = '{% url 'article_results_partial' %}'
+        urls.journalResultsPartial = '{% url 'journal_results_partial' %}'
+        urls.searchPublicationsUrl = '{% url 'search_publications' %}'
+        urls.journalRankingsUrl = '{% url 'get_rankings' %}'
+        urls.searchArticlesUrl = '{% url 'search_articles' %}'
+        urls.graphPartial = '{% url 'graph_partial' %}'
+        urls.keywordSearchUrl = '{% url 'keyword_search' %}'
+        urls.publicationSearchUrl = '{% url 'publication_search' %}'
+        urls.graphDataUrl = '{% url 'graph_data' %}'
+        urls.authorPartial = '{% url 'author_partial' %}'
+        urls.authorSearchUrl = '{% url 'author_search' %}'
+        urls.authorArticlesUrl = '{% url 'author_articles' %}'
+        urls.authorDetailsPartial = '{% url 'author_details_partial' %}'
+        urls.authorCoreferrersUrl = '{% url 'author_coreferrers' %}'
+    </script>
+    <script type="text/javascript" src="{% static 'js/angular.min.js' %}" defer></script>
+    <script type="text/javascript" src="{% static 'js/angular-ui-router.min.js' %}" defer></script>
+    <script type="text/javascript" src="{% static 'js/Chart.min.js' %}" defer></script>
+    <script type="text/javascript" src="{% static 'js/angular-chart.min.js' %}" defer></script>
+    <!--app-->
+    <script type="text/javascript" src="{% static 'js/pubAssistantClient.js' %}" defer></script>
+    <!--preload template controller scripts-->
+    <!--TODO possibly load these dynamically in the future, but don't waste time for js _flaws_ now-->
+    <!--maybe use requirejs for that-->
+    <script type="text/javascript" src="{% static 'hype_cycle_graph/js/GraphCtrl.js' %}" defer></script>
+    <script type="text/javascript" src="{% static 'paper_analyzer/js/ArticleCtrl.js' %}" defer></script>
+    <script type="text/javascript" src="{% static 'author_browser/js/AuthorCtrl.js' %}" defer></script>
+    <script type="text/javascript" src="{% static 'author_browser/js/AuthorDetailsCtrl.js' %}" defer></script>
+</head>
+<body>
+<header>
+    <div class="container">
+        <nav class="navbar navbar-default">
+            <ul class="nav navbar-nav">
+                <li ui-sref-active="active"><a ui-sref="paper-analyzer.text">Analyze an
+                    Article</a></li>
+                <li ui-sref-active="active"><a ui-sref="hype-graph">Hype Cycle Graph</a></li>
+                <li ui-sref-active="active"><a ui-sref="author-search">Author Search</a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</header>
+<div id="wrap">
+    <div class="container content">
+        <div ui-view></div>
+    </div>
+</div>
+<br/>
+<footer>
+    <div class="container">
+        <!--<div class="well">-->
+        <!--</div>-->
+        <hr/>
+        <p class="text-center">
+            <small>&copy; 2016 Bartosz Wójcik</small>
+        </p>
+    </div>
+</footer>
+</body>
+</html>

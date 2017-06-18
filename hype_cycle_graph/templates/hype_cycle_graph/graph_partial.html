@@ -1,0 +1,106 @@
+{% load staticfiles %}
+
+{% verbatim %}
+<div class="row">
+    <div class="col-sm-12">
+        <p>
+            A graph of number of occurrences by year can be generated here for
+            selected keywords. Type in a term you want to search for and select
+            the chosen keyword(s) among those displayed and a graph will be
+            automatically generated. You can also narrow the displayed data to
+            selected journals in the same way.
+        </p>
+        <br/>
+    </div>
+</div>
+
+<div class="panel panel-default">
+    <div class="panel-body">
+        <div class="row">
+            <div class="col-sm-12 text-center">
+                <div ng-if="!showSelectedKeywords" class="text-center">
+                    Select some keywords so a graph can be generated.
+                </div>
+                <div ng-if="graphDataRequestError" class="text-center">
+                    An error has occurred while fetching graph data.
+                </div>
+                <div ng-if="graphDataRequestPending" class="text-center">
+                    <span class="glyphicon glyphicon-refresh spinning"></span> Loading...
+                </div>
+                <canvas id="line" class="chart chart-line" chart-data="data"
+                        chart-labels="labels" chart-series="series">
+                </canvas>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-sm-6 text-center">
+        <form name="keywordSearchForm" role="form">
+            <div class="form-group">
+                <label for="keyword-srch">Search keywords:</label>
+                <input type="text" class="form-control" id="keyword-srch" ng-model="keywordQueryText"
+                       ng-change="onKeywordQuery()">
+            </div>
+        </form>
+        <div ng-if="keywordRequestPending" class="text-center">
+            <span class="glyphicon glyphicon-refresh spinning"></span> Loading...
+        </div>
+        <div ng-if="keywordRequestError" class="text-center">
+            An error has occurred while searching keywords.
+        </div>
+        <div class="btn-toolbar">
+            <button ng-repeat="result in keywordSearchResults" class="label label-primary"
+                    ng-click="addKeyword(result)">
+                {{result.keyword}}
+            </button>
+        </div>
+    </div>
+    <div class="col-sm-6 text-center" ng-show="showSelectedKeywords">
+        <h4>Selected keywords:</h4>
+        <div class="btn-toolbar">
+            <button ng-repeat="selected in selectedKeywords" class="label label-warning"
+                    ng-click="removeKeyword(selected)">
+                {{selected.keyword}}
+            </button>
+        </div>
+        <button class="btn btn-danger btn-xs" ng-click="clearKeywords()">Clear</button>
+    </div>
+</div>
+<hr/>
+<div class="row">
+    <div class="col-sm-6 text-center">
+        <form name="publicationSearchForm" role="form">
+            <div class="form-group">
+                <label for="publication-srch">Search journals to filter by:</label>
+                <input type="text" class="form-control" id="publication-srch" ng-model="publicationQueryText"
+                       ng-change="onPublicationQuery()">
+
+            </div>
+        </form>
+        <div ng-if="publicationRequestPending" class="text-center">
+            <span class="glyphicon glyphicon-refresh spinning"></span> Loading...
+        </div>
+        <div ng-if="publicationRequestError" class="text-center">
+            An error has occurred while searching publications.
+        </div>
+        <div class="btn-toolbar">
+            <button ng-repeat="result in publicationSearchResults" class="label label-primary"
+                    ng-click="addPublication(result)">
+                {{result.name}}
+            </button>
+        </div>
+    </div>
+    <div class="col-sm-6 text-center" ng-show="showSelectedPublications">
+        <h4>Selected journals:</h4>
+        <div class="btn-toolbar">
+            <button ng-repeat="selected in selectedPublications" class="label label-warning"
+                    ng-click="removePublication(selected)">
+                {{selected.name}}
+            </button>
+        </div>
+        <button class="btn btn-danger btn-xs" ng-click="clearPublications()">Clear
+        </button>
+    </div>
+</div>
+{% endverbatim %}

@@ -1,0 +1,149 @@
+version: '2'
+volumes:
+  runtime_data-release:
+  db_data-release:
+  queue_data-release:
+  index_data-release:
+services:
+  db:
+    image: postgres_plpython
+    restart: always
+    build:
+      context: .
+      dockerfile: postgres_plpython.dockerfile
+    volumes:
+      - db_data-release:/var/lib/postgresql/data
+  cache:
+    image: redis:3.2
+    restart: always
+  task_queue:
+    image: rabbitmq:3.6
+    restart: always
+    volumes:
+      - queue_data-release:/var/lib/rabbitmq
+  index:
+    image: elasticsearch:1.7
+    restart: always
+    volumes:
+      - index_data-release:/usr/share/elasticsearch/data
+  base:
+    image: publicationassistant-release
+    build:
+      context: .
+      dockerfile: publicationassistant_release.dockerfile
+    volumes:
+      - runtime_data-release:/var/pubassistant
+    links:
+      - db
+      - task_queue
+      - cache
+      - index
+    command:
+      >
+        bash -c "
+        chown -R user:user /var/pubassistant &&
+        su user -c 'python wait_for.py db 5432' &&
+        su user -c 'python wait_for.py task_queue 5672' &&
+        su user -c 'python wait_for.py cache 6379' &&
+        su user -c 'python wait_for.py index 9200' &&
+        su user -c 'mkdir -p /var/pubassistant/logs' &&
+        su user -c 'touch /var/pubassistant/logs/django.log' &&
+        su user -c 'touch /var/pubassistant/logs/gunicorn.log' &&
+        su user -c 'touch /var/pubassistant/logs/nginx-access.log' &&
+        su user -c 'touch /var/pubassistant/logs/nginx-error.log' &&
+        chmod -R uo+rw /var/pubassistant &&
+        su user -c 'python manage.py migrate' &&
+        su user -c 'python manage.py collectstatic --noinput' &&
+        su user -c 'python manage.py populate_db'"
+    environment:
+      DEBUG: 'True'
+  nginx:
+    image: pubassistant-nginx
+    build:
+      context: .
+      dockerfile: nginx.dockerfile
+    restart: always
+    volumes:
+      - runtime_data-release:/var/pubassistant
+    ports:
+      - '80:80'
+      - '443:443'
+    depends_on:
+      - base
+    links:
+      - gunicorn
+  gunicorn:
+    image: publicationassistant-release
+    command:
+      >
+        bash -c "
+        python wait_for.py db 5432 &&
+        python wait_for.py task_queue 5672 &&
+        python wait_for.py cache 6379 &&
+        python wait_for.py index 9200 &&
+        gunicorn pubAssistant.wsgi:application
+        --name publicationAssistant_gunicorn
+        --bind=unix:/var/pubassistant/gunicorn.sock
+        --user=user --group=user
+        --log-level=info
+        --log-file=/var/pubassistant/logs/gunicorn.log"
+    user: user
+    environment:
+      DJANGO_ALLOWED_HOSTS: '*'
+      DEBUG: 'True'
+    restart: always
+    volumes_from:
+      - base
+    tmpfs:
+      -/tmp
+    depends_on:
+      - base
+    links:
+      - task_queue
+      - db
+      - cache
+      - index
+  celerybeat:
+    image: publicationassistant-release
+    command:
+      >
+        bash -c "
+        python wait_for.py db 5432 &&
+        python wait_for.py task_queue 5672 &&
+        python wait_for.py cache 6379 &&
+        python wait_for.py index 9200 &&
+        celery -A pubAssistant beat
+        --pidfile=/var/pubassistant/celerybeat.pid
+        --schedule=/var/pubassistant/celerybeat-schedule"
+    user: user
+    restart: always
+    volumes_from:
+      - base
+    depends_on:
+      - base
+    links:
+      - task_queue
+      - db
+      - cache
+      - index
+  celeryworker:
+    image: publicationassistant-release
+    command:
+      >
+        bash -c "
+        python wait_for.py db 5432 &&
+        python wait_for.py task_queue 5672 &&
+        python wait_for.py cache 6379 &&
+        python wait_for.py index 9200 &&
+        celery -A pubAssistant worker --concurrency 2 -Q default -n scrapeworker"
+    user: user
+    restart: always
+    volumes_from:
+      - base
+    depends_on:
+      - base
+    links:
+      - task_queue
+      - db
+      - cache
+      - index

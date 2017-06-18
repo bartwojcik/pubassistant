@@ -1,0 +1,123 @@
+version: '2'
+volumes:
+  runtime_data:
+  db_data:
+  queue_data:
+  index_data:
+services:
+  db:
+    image: postgres_plpython
+    build:
+      context: .
+      dockerfile: postgres_plpython.dockerfile
+    volumes:
+      - db_data:/var/lib/postgresql/data
+  cache:
+    image: redis:3.2
+  task_queue:
+    image: rabbitmq:3.6
+    volumes:
+      - queue_data:/var/lib/rabbitmq
+  index:
+    image: elasticsearch:1.7
+    volumes:
+      - index_data:/usr/share/elasticsearch/data
+  base:
+    image: publicationassistant
+    build:
+      context: .
+      dockerfile: publicationassistant.dockerfile
+    volumes:
+      - runtime_data:/var/pubassistant
+      - .:/code
+    links:
+      - db
+      - task_queue
+      - cache
+      - index
+    command:
+      >
+        bash -c "
+        chown -R user:user /var/pubassistant &&
+        su user -c 'mkdir -p /var/pubassistant/logs' &&
+        su user -c 'touch /var/pubassistant/logs/django.log' &&
+        chmod -R uo+rw /var/pubassistant &&
+        rm /var/pubassistant/celerybeat.pid;
+        su user -c 'python wait_for.py db 5432' &&
+        su user -c 'python wait_for.py task_queue 5672' &&
+        su user -c 'python wait_for.py cache 6379' &&
+        su user -c 'python wait_for.py index 9200' &&
+        su user -c 'python manage.py migrate' &&
+        su user -c 'python manage.py populate_db'"
+    environment:
+      DEBUG: 'True'
+  web:
+    image: publicationassistant
+    command:
+      >
+        bash -c "
+        python wait_for.py db 5432 &&
+        python wait_for.py task_queue 5672 &&
+        python wait_for.py cache 6379 &&
+        python wait_for.py index 9200 &&
+        python manage.py runserver 0.0.0.0:8000"
+    user: user
+    environment:
+      DEBUG: 'True'
+    volumes_from:
+      - base
+    ports:
+      - '8000:8000'
+    depends_on:
+      - base
+    links:
+      - task_queue
+      - db
+      - cache
+      - index
+  celerybeat:
+    image: publicationassistant
+    command:
+      >
+        bash -c "
+        python wait_for.py db 5432 &&
+        python wait_for.py task_queue 5672 &&
+        python wait_for.py cache 6379 &&
+        python wait_for.py index 9200 &&
+        celery -A pubAssistant beat
+        --pidfile=/var/pubassistant/celerybeat.pid
+        --schedule=/var/pubassistant/celerybeat-schedule"
+    user: user
+    environment:
+      DEBUG: 'True'
+    volumes_from:
+      - base
+    depends_on:
+      - base
+    links:
+      - task_queue
+      - db
+      - cache
+      - index
+  celeryworker:
+    image: publicationassistant
+    command:
+      >
+        bash -c "
+        python wait_for.py db 5432 &&
+        python wait_for.py task_queue 5672 &&
+        python wait_for.py cache 6379 &&
+        python wait_for.py index 9200 &&
+        celery -A pubAssistant worker --concurrency 2 -Q default -n scrapeworker"
+    user: user
+    environment:
+      DEBUG: 'True'
+    volumes_from:
+      - base
+    depends_on:
+      - base
+    links:
+      - task_queue
+      - db
+      - cache
+      - index

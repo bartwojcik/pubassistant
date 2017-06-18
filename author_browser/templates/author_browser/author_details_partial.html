@@ -1,0 +1,86 @@
+{% load staticfiles %}
+
+{% verbatim %}
+
+<div class="row">
+    <div class="col-sm-12">
+        <div ng-if="authorRequestPending" class="text-center">
+            <span class="glyphicon glyphicon-refresh spinning"></span> Loading...
+        </div>
+        <div ng-if="authorRequestError" class="text-center">
+            An error has occurred while fetching author's data. Try rerunning your request.
+        </div>
+        <h2>{{author.full_name}}</h2>
+        <strong>Articles:</strong>
+        <div ng-if="articlesRequestPending" class="text-center">
+            <span class="glyphicon glyphicon-refresh spinning"></span> Loading...
+        </div>
+        <div ng-if="articlesRequestError" class="text-center">
+            An error has occurred while fetching author's articles. Try rerunning your request.
+        </div>
+        <ul>
+            <li ng-repeat="article in articles">
+                <a target="_blank" href="{{article.location}}">{{article.title}}</a>
+            </li>
+        </ul>
+        <div ng-if="coreferrersRequestPending" class="text-center">
+            <span class="glyphicon glyphicon-refresh spinning"></span> Loading...
+        </div>
+        <div ng-if="coreferrersRequestError" class="text-center">
+            An error has occurred while fetching coreferrers. Try rerunning your request.
+        </div>
+        <strong ng-show="coreferrers.length === 0">No coreferres found.</strong>
+        <div id="coreferrers" ng-show="coreferrers.length > 0">
+            <strong>Coreferrers:</strong>
+            <ul class="list-group">
+                <li class="list-group-item" ng-repeat="coreferrer in coreferrers track by $index">
+                    <a ui-sref=".({id: '{{coreferrer.author.id}}'})">{{coreferrer.author.full_name}}</a>
+                    <ul style="list-style-type:none">
+                        <li>
+                            <button type="button" class="btn btn-link btn-xs" ng-click="triggerReferences(coreferrer)">
+                                {{author.full_name}} -> {{coreferrer.author.full_name}}
+                                ({{coreferrer.references.length}} references)
+                            </button>
+                            <div ng-show="coreferrer.references.show">
+                                <ul>
+                                    <li ng-repeat="reference in coreferrer.references">
+                                        <a target="_blank" href="{{reference.referring.location}}">
+                                            {{reference.referring.title}}
+                                        </a>
+                                        ->
+                                        <a target="_blank" href="{{reference.referred.location}}">
+                                            {{reference.referred.title}}
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </li>
+                        <br/>
+                        <li>
+                            <button type="button" class="btn btn-link btn-xs"
+                                    ng-click="triggerBackreferences(coreferrer)">
+                                {{coreferrer.author.full_name}} -> {{author.full_name}}
+                                ({{coreferrer.backreferences.length}} references)
+                            </button>
+                            <div ng-show="coreferrer.backreferences.show">
+                                <ul>
+                                    <li ng-repeat="reference in coreferrer.backreferences">
+                                        <a target="_blank" href="{{reference.referring.location}}">
+                                            {{reference.referring.title}}
+                                        </a>
+                                        ->
+                                        <a target="_blank" href="{{reference.referred.location}}">
+                                            {{reference.referred.title}}
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+{% endverbatim %}

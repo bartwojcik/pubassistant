@@ -1,0 +1,8 @@
+{% if object.identifier|length < 32 %}
+{{ object.identifier }}
+{% endif %}
+{{ object.name }}
+{% if object.aim_and_scope %}
+{{ object.aim_and_scope }}
+{% endif %}
+
